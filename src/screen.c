@@ -21,8 +21,8 @@ static int Y = 0;
 // location of scroller (Y of line that prints on top of screen)
 static int Top = 0;
 
-// Mode = true is scroll mode that user can scroll
-// Mode = false is normal mode that input will send to child
+// 'Mode = true' is scroll mode that user can scroll
+// 'Mode = false' is normal mode that input will send to child
 bool Mode = false;
 
 // get a pointer that points to specified location of buffer
@@ -176,8 +176,8 @@ void screen_refresh() {
 /* key codes */
 #define KC_ESCAPE 27
 #define KC_ENTER 13
-#define KC_UP 4280091
-#define KC_DOWN 4345627
+#define KC_UP 4283163
+#define KC_DOWN 4348699
 #define KC_PAGEUP 2117425947
 #define KC_PAGEDOWN 2117491483
 #define KC_HOME 2117163803
