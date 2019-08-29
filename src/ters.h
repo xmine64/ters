@@ -15,8 +15,8 @@ void panic(const char *error, ...);
 
 // initialize pty
 int pty_init();
-// send data to child through pty
-void pty_send(char *buffer, int count);
+// send key to child through pty
+void pty_send_keypress(long keycode);
 
 /* events */
 
@@ -34,7 +34,7 @@ void screen_init();
 // stop ncurses
 void screen_close();
 // handle user input
-void screen_handle_user_input(char *buf, int count);
+void screen_handle_user_input(long keycode);
 // refresh screen
 void screen_refresh();
 // clear buffer

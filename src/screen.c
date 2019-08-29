@@ -116,7 +116,6 @@ void screen_init() {
     initscr();
     raw();
     noecho();
-    //keypad(stdscr, TRUE);
     printw("loading...");
     refresh();
 }
@@ -144,6 +143,14 @@ void screen_message(const char *message, ...) {
 // render buffer to screen
 void screen_refresh() {
     clear();
+    if (Top + LINES > (BUFFER_LINES * BUFFER_PAGES)) {
+    	printw( "Top over buffer error\n"
+    			"Top: %d, Buffer size: %d\n",
+    			Top, BUFFER_LINES*BUFFER_PAGES);
+    	sleep(1);
+    	Top = 0;
+    	screen_refresh();
+    }
     // for each LINE from Top
     for (int y = Top; y < LINES + Top; y++) {
     	// for each COL
@@ -157,114 +164,162 @@ void screen_refresh() {
     refresh();
 }
 
+
 /* input handler */
 
-// key code of [Esc] button
-#define KEY_ESCAPE 27
-#define KEY_ENTER 13
+/* key codes */
+#define KC_ESCAPE 27
+#define KC_ENTER 13
+#define KC_UP 4280091
+#define KC_DOWN 4345627
+#define KC_PAGEUP 2117425947
+#define KC_PAGEDOWN 2117491483
+#define KC_HOME 2117163803
+#define KC_END 2117360411
 
-void screen_handle_user_input(char *buffer, int count) {
-    if (Mode) {
-    	// keypad keycodes starts with [0]=27, [1]=91
-        if (buffer[0] == 27 && buffer[1] == 91) {
-            switch (buffer[2]) {
-            	// page up
-            	case 53:
-            		if (Top - LINES >= 0) {
-            			Top -= LINES;
-            			screen_refresh();
-            		}
-            		return;
-            	// page down
-            	case 54:
-            		if ((Top + (2*LINES)) < (BUFFER_LINES * BUFFER_PAGES)) {
-            		    Top += LINES;
-            			screen_refresh();
-            		}
-            		return;
-                // key up
-                case 65:
-                    if (Top > 0) {
-                        Top -= 1;
-                        screen_refresh();
-                    } else {
-                    	screen_message("top line");
-                    }
-                    return;
-                case 66:
-                    if ((Top + LINES) < (BUFFER_LINES * BUFFER_PAGES)) {
-                        Top += 1;
-                        screen_refresh();
-                    } else {
-                    	screen_message("last line");
-                    }
-                    return;
-                default:
-					screen_message("invalid key (keypad key): [%d] { %d , %d , %d }\n"
-                			       "press [h] for help",
-                			       count, buffer[0], buffer[1], buffer[2]);
-                    return;
-            }
-        }
-        switch (buffer[0]) {
-        	// [h] quits
-            case 'q':
-                events_stop();
-                break;
-            // [h] shows a help message
-            case 'h':
-            	screen_message("[Esc]       send escape to child\n"
-            		   		   "[Up]        scroll up\n"
-            		           "[Down]      scroll down\n"
-            		   		   "[Page up]   scroll one page up\n"
-            		           "[Page down] scroll one page down\n"
-            		           "[r]         refresh screen (to show terminal again)\n"
-              		           "[q]         quit\n");
-            	break;
-            // [r] refreshes screen
-            case 'r':
-            	screen_refresh();
-            	break;
-            // send escpae key when [Esc] pressed in scroll mode
-            case KEY_ESCAPE:
-                if (count == 1) {
-                    pty_send(buffer, count);
-                    Mode = false;
-                } else {
-					screen_message("invalid key (escape key): [%d] { %d , %d , %d }\n"
-                			       "press [h] for help",
-                			       count, buffer[0], buffer[1], buffer[2]);
-                }
-                break;
-            // [Enter] back to normal mode when
-            case KEY_ENTER:
-	            Mode = false;
-                if (Y >= LINES) {
-                	Top = Y - LINES + 1;
-                }
-            	screen_message("scroll mode disabled.");
-            	sleep(1);
-            	screen_refresh();
-                break;
-            // show an error for invalid key press
-            default:
-                screen_message("invalid key: [%d] { %d , %d , %d }\n"
-                			   "press [h] for help",
-                			    count, buffer[0], buffer[1], buffer[2]);
-                break;
-        }
-        return;
-    }
+/* actions */
+void screen_action_line_up() {
+	if (Top > 0) {
+		Top -= 1;
+		screen_refresh();
+	} else {
+		screen_message("top of buffer (press [r] to get terminal back)");
+	}
+}
 
-    // [Esc] is single byte 27.
-    if (count == 1 && buffer[0] == KEY_ESCAPE) {
-        // TODO: show a 'waiting for key press' message on bottom or top of screen
-        Mode = true;
-        screen_message("scroll mode enabled.");
-        sleep(1);
-        screen_refresh();
-    } else {
-    	// send keypress to child when not in scroll mode
-        pty_send(buffer, count);
-    }
+void screen_action_line_down() {
+	if ((Top + LINES) < (BUFFER_LINES * BUFFER_PAGES)) {
+		Top += 1;
+		screen_refresh();
+	} else {
+		screen_message("end of buffer (press [r] to get terminal back)");
+	}
+}
+
+void screen_action_page_up() {
+	if (Top - LINES >= 0) {
+		Top -= LINES;
+		screen_refresh();
+	}	
+}
+
+void screen_action_page_down() {
+	if ((Top + (2*LINES)) < (BUFFER_LINES * BUFFER_PAGES)) {
+		Top += LINES;
+		screen_refresh();
+	}
+}
+
+void screen_action_scroll_top() {
+	Top = 0;
+	screen_refresh();
+}
+
+void screen_action_scroll_end() {
+	Top = (BUFFER_LINES*BUFFER_PAGES) - LINES - 1;
+	screen_refresh();
+}
+
+void screen_action_scroll_mode() {
+	Mode = true;
+
+	// TODO: show a 'waiting for key press' message on bottom or top of screen
+
+	screen_message("scroll mode enabled.");
+	sleep(1);
+	screen_refresh();	
+}
+
+void screen_action_normal_mode() {
+	Mode = false;
+	if (Y >= LINES) {
+		Top = Y - LINES + 1;
+	}
+	
+	screen_message("scroll mode disabled.");
+	sleep(1);
+	screen_refresh();
+}
+
+void screen_action_help() {
+	screen_message( "[Esc]       send escape to child\n"
+					"[Up]        scroll up\n"
+					"[Down]      scroll down\n"
+					"[Page up]   scroll one page up\n"
+					"[Page down] scroll one page down\n"
+					"[r]         refresh screen (to show terminal again)\n"
+					"[q]         quit\n"
+					);
+}
+
+/* handler */
+
+void screen_handle_scroll_mode(long keycode) {
+	switch (keycode) {
+		// send [Esc] to running program
+		case KC_ESCAPE:
+			screen_action_normal_mode();
+			pty_send_keypress(KC_ESCAPE);
+			break;
+		// back to normal mode
+		case KC_ENTER:
+			screen_action_normal_mode();
+			break;
+			
+		// scroll one line up
+		case KC_UP:
+			screen_action_line_up();
+			break;
+		// scroll one line down
+		case KC_DOWN:
+			screen_action_line_down();
+			break;
+		// scroll one page up
+		case KC_PAGEUP:
+			screen_action_page_up();
+			break;
+		// scroll one page down
+		case KC_PAGEDOWN:
+			screen_action_page_down();
+			break;
+		// scroll to top
+		case KC_HOME:
+			screen_action_scroll_top();
+			break;
+		// scroll to end
+		case KC_END:
+			screen_action_scroll_end();
+			break;
+			
+		// help
+		case 'h':
+			screen_action_help();
+			break;
+		// refresh screen
+		case 'r':
+			screen_refresh();
+			break;
+		// quit
+		case 'q':
+			events_stop();
+			break;
+
+		default:
+			screen_message( "invalid key: %d\n"
+							"press [h] for help.",
+							keycode);
+			break;
+	}
+}
+
+void screen_handle_user_input(long keycode) {
+	if (Mode) {
+		screen_handle_scroll_mode(keycode);
+	} else {
+		if (keycode == KC_ESCAPE) {
+			screen_action_scroll_mode();
+		} else {
+			pty_send_keypress(keycode);
+		}
+	}
 }

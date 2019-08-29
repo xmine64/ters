@@ -78,8 +78,7 @@ void child_process() {
     //setenv("SHELL", sh, 1);
     //setenv("HOME", pw->pw_dir, 1);
 	
-    // TODO: set TERM
-    //setenv("TERM", "xterm", 1);
+    setenv("TERM", "dumb", 1);
 	
     // print some helpful texts
     printf("The TERminal Scroller\n"
@@ -128,7 +127,20 @@ int pty_init() {
 	}
 }
 
+// write buffer to master side of pty
 void pty_send(char *buffer, int count) {
-	// write buffer to be send to master side of pty
     write(MasterFd, buffer, count);
+}
+
+void pty_send_keypress(long keycode) {
+	char buffer[] = {0, 0, 0, 0, 0, 0, 0, 0};
+	memcpy(buffer, &keycode, 8);
+
+	// calculate size of buffer, it's i+1
+	int i = 0;
+	while (i < 8 && buffer[i] != '\0') {
+		i++;
+	}
+	
+	pty_send(buffer, i + 1);
 }

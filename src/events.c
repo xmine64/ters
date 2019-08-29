@@ -24,12 +24,21 @@ void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
     }
 }
 
+// convert key buffer to key code
+long kb_to_kc(char *buffer, int count) {
+	char buf[] = {0, 0, 0, 0, 0, 0, 0, 0};
+	memcpy(buf, buffer, count);
+	long keycode = *(int*)buf;
+	return keycode;
+}
+
 // callback function for ev_stdin
 void events_callback_stdin(evutil_socket_t fd, short ev, void * arg) {
-    char buf[4];
-    int count = read(fd, buf, 4);
+    char buf[8];
+    int count = read(fd, buf, 8);
+    int key = kb_to_kc(buf, count);
     if (count > 0)
-        screen_handle_user_input(buf, count);
+        screen_handle_user_input(key);
 }
 
 // initialize event handler and create an event for pty_fd
