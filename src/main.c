@@ -5,36 +5,40 @@
 #include "ters.h"
 
 #include <stdarg.h>
-#include <curses.h>
+
+static int PtyFd = -1;
 
 int main() {
-	printf("Terminal Scroller v0.1 alpha\n");
-	printf("Copyright (C) 2019 By Mohammad Amin Mollazadeh\n\n");
+	printf("Terminal Scroller v0.1 alpha\n"
+		   "Copyright (C) 2019 By Mohammad Amin Mollazadeh\n\n");
 
 	// initialize pty
-	int pty_fd = pty_init();
+	PtyFd = pty_init();
 
     // initialize screen
     screen_init();
 
 	// initialize event handler
-	events_init(pty_fd);
+	events_init(PtyFd);
 
 	// start main loop
 	events_loop();
 
 	// exiting
 	screen_close();
-	close(pty_fd);
+	close(PtyFd);
 }
 
+// close resource and show error message when an unexpected error occurs.
 void panic(const char *error, ...) {
     screen_close();
+    close(PtyFd);
 
 	va_list ap;
 
 	va_start(ap, error);
 	vfprintf(stderr, error, ap);
 	va_end(ap);
+	
 	exit(1);
 }
