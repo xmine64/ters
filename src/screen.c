@@ -189,7 +189,8 @@ void screen_action_line_up() {
 		Top -= 1;
 		screen_refresh();
 	} else {
-		screen_message("top of buffer (press [r] to get terminal back)");
+		beep();
+		flash();
 	}
 }
 
@@ -198,7 +199,8 @@ void screen_action_line_down() {
 		Top += 1;
 		screen_refresh();
 	} else {
-		screen_message("end of buffer (press [r] to get terminal back)");
+		beep();
+		flash();
 	}
 }
 
@@ -206,13 +208,19 @@ void screen_action_page_up() {
 	if (Top - LINES >= 0) {
 		Top -= LINES;
 		screen_refresh();
-	}	
+	} else {
+		beep();
+		flash();
+	}
 }
 
 void screen_action_page_down() {
 	if ((Top + (2*LINES)) < (BUFFER_LINES * BUFFER_PAGES)) {
 		Top += LINES;
 		screen_refresh();
+	} else {
+		beep();
+		flash();
 	}
 }
 
