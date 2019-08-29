@@ -8,9 +8,9 @@
 /* buffer */
 
 // for ease of sizing buffer
-#define BUFFER_COLS 180  // columns of my console
-#define BUFFER_LINES 64  // lines of my console
-#define BUFFER_PAGES 100 // selected randomly
+#define BUFFER_COLS 180   // columns of my console
+#define BUFFER_LINES 64   // lines of my console
+#define BUFFER_PAGES 1000 // selected randomly
 
 static u_char Buffer[BUFFER_COLS * BUFFER_LINES * BUFFER_PAGES];
 
@@ -132,6 +132,7 @@ void screen_init() {
     initscr();
     raw();
     noecho();
+    keypad(stdscr, TRUE);
     printw("loading...");
     refresh();
 }
@@ -159,6 +160,7 @@ void screen_message(const char *message, ...) {
 // render buffer to screen
 void screen_refresh() {
     clear();
+    // check if screen is not out of buffer
     if ((Top + LINES) * COLS > sizeof(Buffer)) {
     	printw( "Top over buffer error\n"
     			"Top: %d, Buffer size: %d\n",
@@ -186,7 +188,9 @@ void screen_refresh() {
 /* key codes */
 #define KC_ESCAPE 27
 #define KC_ENTER 13
-#define KC_UP 4283163
+// without keypad() #define KC_UP 4283163
+// without keypad() #define KC_DOWN 4348699
+#define KC_UP 4280091
 #define KC_DOWN 4348699
 #define KC_PAGEUP 2117425947
 #define KC_PAGEDOWN 2117491483
