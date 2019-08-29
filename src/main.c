@@ -1,6 +1,5 @@
-// the TERminal Scroller
+// Ters the Terminal Scroller
 // Copyright (C) 2019 By Mohammad Amin Mollazadeh
-
 
 #include "ters.h"
 
