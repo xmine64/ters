@@ -8,9 +8,9 @@
 /* buffer */
 
 // for ease of sizing buffer
-#define BUFFER_COLS 80
-#define BUFFER_LINES 25
-#define BUFFER_PAGES 100
+#define BUFFER_COLS 180  // columns of my console
+#define BUFFER_LINES 64  // lines of my console
+#define BUFFER_PAGES 100 // selected randomly
 
 static u_char Buffer[BUFFER_COLS * BUFFER_LINES * BUFFER_PAGES];
 
@@ -38,10 +38,15 @@ u_char *buffer_get_pointer() {
 // move Y one down
 void update_y() {
     Y++;
+
+    // instead of here, it'll checked in buffer_append
+    /*
     // clear buffer when Y reaches to end of buffer
     if (Y >= BUFFER_LINES * BUFFER_PAGES) {
         screen_clear();
     }
+    */
+
     // move scroller one down when first page is full
     if (!Mode && Y >= LINES) {
         Top = Y - LINES + 1;
@@ -71,8 +76,13 @@ void backspace() {
     }
 }
 
-// append new data recieved from pty to buffer
+// append new data received from pty to buffer
 void buffer_append(const char *buffer, int count) {
+    // clear screen when it doesn't fits in buffer.
+    if ((Y*COLS) + X + count > sizeof(Buffer)) {
+        screen_clear();
+    }
+
     for (int i = 0; i < count; i++) {
     	// go to new line when '\n' received
         if (buffer[i] == '\n') {
@@ -149,7 +159,7 @@ void screen_message(const char *message, ...) {
 // render buffer to screen
 void screen_refresh() {
     clear();
-    if (Top + LINES > (BUFFER_LINES * BUFFER_PAGES)) {
+    if ((Top + LINES) * COLS > sizeof(Buffer)) {
     	printw( "Top over buffer error\n"
     			"Top: %d, Buffer size: %d\n",
     			Top, BUFFER_LINES*BUFFER_PAGES);
