@@ -89,6 +89,12 @@ void buffer_append(const char *buffer, int count) {
             backspace();
             continue;
         }
+        // beep when '\a' received
+        if (buffer[i] == '\a') {
+        	beep();
+        	flash();
+        	continue;
+        }
         // write character to buffer
         buffer_get_pointer()[0] = buffer[i];
         // move pointer
