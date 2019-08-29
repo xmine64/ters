@@ -179,6 +179,11 @@ void screen_refresh() {
             }
         }
     }
+    // Mode indicator
+    if (Mode) {
+    	// print " [scroll mode] " in bottom-left
+     	mvprintw(LINES - 1, 0, " [scroll mode] ");
+    }
     refresh();
 }
 
@@ -191,7 +196,7 @@ void screen_refresh() {
 // without keypad() #define KC_UP 4283163
 // without keypad() #define KC_DOWN 4348699
 #define KC_UP 4280091
-#define KC_DOWN 4348699
+#define KC_DOWN 4345627
 #define KC_PAGEUP 2117425947
 #define KC_PAGEDOWN 2117491483
 #define KC_HOME 2117163803
@@ -253,8 +258,8 @@ void screen_action_scroll_mode() {
 
 	// TODO: show a 'waiting for key press' message on bottom or top of screen
 
-	screen_message("scroll mode enabled.");
-	sleep(1);
+	//screen_message("scroll mode enabled.");
+	//sleep(1);
 	screen_refresh();	
 }
 
@@ -264,8 +269,8 @@ void screen_action_normal_mode() {
 		Top = Y - LINES + 1;
 	}
 	
-	screen_message("scroll mode disabled.");
-	sleep(1);
+	//screen_message("scroll mode disabled.");
+	//sleep(1);
 	screen_refresh();
 }
 
