@@ -3,6 +3,9 @@
 
 #include "ters.h"
 
+#include <unistd.h>
+#include <sys/ioctl.h>
+
 /* including libevent2 */
 #include <event2/event.h>
 #include <event2/buffer.h>
@@ -16,13 +19,13 @@ static struct event *ev_stdin;
 
 // callback function for ev_pty
 void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
-    char buf[300];
-    int count = read(fd, buf, 300);
-    if (count > 0) {
-    	char *str = malloc(count);
-    	memcpy(str, buf, count);
-        screen_print(str);
-        free(str);
+	int count;
+	ioctl(fd, FIONREAD, &count);
+	if (count > 0) {
+		char *buf = malloc(count);
+	    read(fd, buf, count);
+    	screen_print(buf);
+	    free(buf);
     }
 }
 

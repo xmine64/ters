@@ -3,8 +3,8 @@
 
 #include "ters.h"
 
+#include <unistd.h>
 #include <errno.h>
-
 #include <pty.h>
 #include <sys/wait.h>
 
