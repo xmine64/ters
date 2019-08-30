@@ -18,21 +18,33 @@ static int Pos = 0;
 // 'Mode = false' is normal mode that input will send to child
 bool Mode = false;
 
+// update scroller pos after printing
+void screen_update_pos() {
+	int y, x;
+	getyx(Pad, y, x);
+	
+	int new_pos = y - LINES - 1;
+	if (!Mode && new_pos > 0) {
+	  	Pos = new_pos;
+	}
+}
+
 // print new data received from pty
-void screen_print(const char *str, ...) {
+void screen_print(const char *str) {
+	waddstr(Pad, str);
+	
+	screen_update_pos();
+	screen_refresh();
+}
+
+void screen_printf(const char *str, ...) {
 	va_list ap;
 	va_start(ap, str);
 	vwprintw(Pad, str, ap);
 	va_end(ap);
-	
-    int y, x; // TODO: what can I do with 'x' the unused variable?
-    getyx(Pad, y, x);
-    int new_pos = y - LINES - 1;
-    if (!Mode && new_pos > 0) {
-    	Pos = new_pos;
-    }
-    
-    screen_refresh();
+
+	screen_update_pos();
+	screen_refresh();
 }
 
 void screen_clear() {
@@ -238,7 +250,7 @@ void screen_handle_scroll_mode(long keycode) {
 			break;
 
 		default:
-			screen_print("invalid key: %d\n"
+			screen_printf("invalid key: %d\n"
 						 "press [h] for help.\n",
 						 keycode);
 			break;
