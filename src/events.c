@@ -22,6 +22,7 @@ void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
     	char *str = malloc(count);
     	memcpy(str, buf, count);
         screen_print(str);
+        free(str);
     }
 }
 
