@@ -10,7 +10,6 @@
 
 // pad is curses' scrollable window
 static WINDOW *Pad;
-static int PadSize;
 
 // position of scroller on screen
 static int Pos = 0;
@@ -86,9 +85,11 @@ void screen_refresh() {
     mvprintw(LINES - 1, 0, "y: %d, x: %d   ", y, x);
 
     // move pointer to currect place
-    int page_number = y/LINES;
-    y = y - LINES*page_number;
-    move(y, x);
+    if (!Mode) {
+	    int page_number = y/LINES;
+    	y = y - LINES*page_number;
+	    move(y, x);
+    }
     
     refresh();
 }
