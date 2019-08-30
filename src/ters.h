@@ -39,5 +39,5 @@ void screen_handle_user_input(long keycode);
 void screen_refresh();
 // clear buffer
 void screen_clear();
-// append data to buffer
-void buffer_append(const char *buffer, int count);
+// print buffer to screen
+void screen_print(const char *str, ...);

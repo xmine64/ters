@@ -80,12 +80,6 @@ void child_process() {
 	
     setenv("TERM", "dumb", 1);
 	
-    // print some helpful texts
-    printf("The TERminal Scroller\n"
-           "version 0.1 alpha EXPERIMENTAL\n"
-           "Copyright (c) 2019 Mohammad Amin Mollazadeh\n"
-           "Press [Esc] then [h] for help.\n\n");
-	
     // start shell
     char *const shell_args[] = { "/bin/sh", "-", NULL };
     execv(shell_args[0], shell_args);

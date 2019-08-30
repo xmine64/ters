@@ -19,8 +19,9 @@ void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
     char buf[300];
     int count = read(fd, buf, 300);
     if (count > 0) {
-        buffer_append(buf, count);
-        screen_refresh();
+    	char *str = malloc(count);
+    	memcpy(str, buf, count);
+        screen_print(str);
     }
 }
 
