@@ -23,10 +23,10 @@ void screen_update_pos() {
 	int y, x;
 	getyx(Pad, y, x);
 
-	int page_number = y/LINES;
+	int new_pos = y - LINES + 1;
 	
-	if (!Mode && page_number > 0) {
-	  	Pos = page_number*LINES;
+	if (!Mode && new_pos > 0) {
+	  	Pos = new_pos;
 	}
 }
 
@@ -112,12 +112,12 @@ void screen_refresh() {
     }
 
     // move pointer to currect place
-    if (!Mode) {
+    if (Mode) {
+    	move(LINES - 1, COLS - 1);
+    } else {
     	int y, x;
     	getyx(Pad, y, x);
-		int page_number = y/LINES;
-		y = y - LINES*page_number;
-		move(y, x);
+    	move(y > LINES? LINES-1 : y, x);
     }
     
     refresh();
