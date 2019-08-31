@@ -3,8 +3,8 @@
 
 #include "ters.h"
 
+#include <unistd.h>
 #include <errno.h>
-
 #include <pty.h>
 #include <sys/wait.h>
 
@@ -79,12 +79,6 @@ void child_process() {
     //setenv("HOME", pw->pw_dir, 1);
 	
     setenv("TERM", "dumb", 1);
-	
-    // print some helpful texts
-    printf("The TERminal Scroller\n"
-           "version 0.1 alpha EXPERIMENTAL\n"
-           "Copyright (c) 2019 Mohammad Amin Mollazadeh\n"
-           "Press [Esc] then [h] for help.\n\n");
 	
     // start shell
     char *const shell_args[] = { "/bin/sh", "-", NULL };

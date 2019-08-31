@@ -3,9 +3,15 @@
 
 #include "ters.h"
 
+#include <unistd.h>
 #include <stdarg.h>
 
 static int PtyFd = -1;
+
+void free_resources() {
+    screen_close();
+    close(PtyFd);
+}
 
 int main() {
 	printf("Terminal Scroller v0.1 alpha\n"
@@ -16,6 +22,9 @@ int main() {
 
     // initialize screen
     screen_init();
+
+    // close resources on exit
+    atexit(free_resources);
 
 	// initialize event handler
 	events_init(PtyFd);
@@ -30,8 +39,7 @@ int main() {
 
 // close resource and show error message when an unexpected error occurs.
 void panic(const char *error, ...) {
-    screen_close();
-    close(PtyFd);
+	free_resources();
 
 	va_list ap;
 

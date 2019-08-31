@@ -5,122 +5,73 @@
 
 #include <curses.h>
 
-/* buffer */
+// total pages
+#define PAGES 500
 
-// for ease of sizing buffer
-#define BUFFER_COLS 180   // columns of my console
-#define BUFFER_LINES 64   // lines of my console
-#define BUFFER_PAGES 1000 // selected randomly
+// pad is curses' scrollable window
+static WINDOW *Pad;
 
-static u_char Buffer[BUFFER_COLS * BUFFER_LINES * BUFFER_PAGES];
-
-// location of buffer
-static int X = 0;
-static int Y = 0;
-
-// location of scroller (Y of line that prints on top of screen)
-static int Top = 0;
+// position of scroller on screen
+static int Pos = 0;
 
 // 'Mode = true' is scroll mode that user can scroll
 // 'Mode = false' is normal mode that input will send to child
 bool Mode = false;
 
-// get a pointer that points to specified location of buffer
-u_char *buffer_get_pointer_at(int x, int y) {
-    return Buffer + (y*COLS) + x;
+// update scroller pos after printing
+void screen_update_pos() {
+	int y, x;
+	getyx(Pad, y, x);
+
+	int page_number = y/LINES;
+	
+	if (!Mode && page_number > 0) {
+	  	Pos = page_number*LINES;
+	}
 }
 
-// get pointer that points to current location of buffer
-u_char *buffer_get_pointer() {
-    return buffer_get_pointer_at(X, Y);
+// print new data received from pty
+void screen_print_buffer(char *buffer, int count) {
+	int y, x;
+	for (int i=0; i < count; i++) {
+		switch (buffer[i]) {
+			case '\a':
+				beep();
+				flash();
+				break;
+			case '\r':
+				getyx(Pad, y, x);
+				wmove(Pad, y, 0);
+				break;
+			case '\n':
+				getyx(Pad, y, x);
+				wmove(Pad, y + 1, x);
+				break;
+			default:
+				waddch(Pad, buffer[i]);
+				break;
+		}
+	}
+	
+	screen_update_pos();
+	screen_refresh();
 }
 
-// move Y one down
-void update_y() {
-    Y++;
+void screen_printf(const char *str, ...) {
+	va_list ap;
+	va_start(ap, str);
+	vwprintw(Pad, str, ap);
+	va_end(ap);
 
-    // instead of here, it'll checked in buffer_append
-    /*
-    // clear buffer when Y reaches to end of buffer
-    if (Y >= BUFFER_LINES * BUFFER_PAGES) {
-        screen_clear();
-    }
-    */
-
-    // move scroller one down when first page is full
-    if (!Mode && Y >= LINES) {
-        Top = Y - LINES + 1;
-    }
-}
-
-// move X one left
-void update_x() {
-    X++;
-    // go to next line when line is full
-    if (X >= COLS) {
-        X = 0;
-        update_y();
-    }
-}
-
-// move pointer one back when '\b' received
-void backspace() {
-	// go previous line when current line is full
-    if (X == 0) {
-        Y -= 1;
-        X = COLS - 1;
-        buffer_get_pointer()[0] = '\0';
-    } else {
-        X -= 1;
-        buffer_get_pointer()[0] = '\0';
-    }
-}
-
-// append new data received from pty to buffer
-void buffer_append(const char *buffer, int count) {
-    // clear screen when it doesn't fits in buffer.
-    if ((Y*COLS) + X + count > sizeof(Buffer)) {
-        screen_clear();
-    }
-
-    for (int i = 0; i < count; i++) {
-    	// go to new line when '\n' received
-        if (buffer[i] == '\n') {
-            update_y();
-            continue;
-        }
-        // back to start of line when '\r' received
-        if (buffer[i] == '\r') {
-            X = 0;
-            continue;
-        }
-        // do backspace when '\b' received
-        if (buffer[i] == '\b') {
-            backspace();
-            continue;
-        }
-        // beep when '\a' received
-        if (buffer[i] == '\a') {
-        	beep();
-        	flash();
-        	continue;
-        }
-        // write character to buffer
-        buffer_get_pointer()[0] = buffer[i];
-        // move pointer
-        update_x();
-    }
+	screen_update_pos();
+	screen_refresh();
 }
 
 void screen_clear() {
-	// reset pointers
-	Top = 0;
-    X = 0;
-    Y = 0;
+	Pos = 0;
 
-    // fill buffer with '\0'
-    memset(Buffer, 0, sizeof(Buffer));
-
+	wclear(Pad);
+	
     // refresh screen
     screen_refresh();
 }
@@ -133,57 +84,45 @@ void screen_init() {
     raw();
     noecho();
     keypad(stdscr, TRUE);
-    printw("loading...");
-    refresh();
+
+    Pad = newpad(LINES*PAGES, COLS);
+
+    screen_printf("Ters, The Terminal Scroller\n"
+    			  "v0.1 alpha (EXPERIMENTAL)\n\n");
 }
 
 // close ncurses
 void screen_close() {
+	delwin(Pad);
     endwin();
-}
-
-// write a message to screen
-void screen_message(const char *message, ...) {
-    clear();
-
-	va_list ap;
-
-	va_start(ap, message);
-	vwprintw(stdscr, message, ap);
-	va_end(ap);
-
-	refresh();
 }
 
 /* render */
 
 // render buffer to screen
 void screen_refresh() {
-    clear();
-    // check if screen is not out of buffer
-    if ((Top + LINES) * COLS > sizeof(Buffer)) {
-    	printw( "Top over buffer error\n"
-    			"Top: %d, Buffer size: %d\n",
-    			Top, BUFFER_LINES*BUFFER_PAGES);
-    	sleep(1);
-    	Top = 0;
-    	screen_refresh();
-    }
-    // for each LINE from Top
-    for (int y = Top; y < LINES + Top; y++) {
-    	// for each COL
-        for (int x = 0; x < COLS; x++) {
-            u_char c = buffer_get_pointer_at(x, y)[0];
-            if (c != '\0') {
-                mvaddch(y - Top, x, c);
-            }
-        }
-    }
-    // Mode indicator
+	// refresh Pad
+	int lines = Mode? LINES - 2 : LINES - 1;
+    prefresh(Pad, Pos, 0, 0, 0, lines - 1, COLS - 1);
+
+    // draw scroll indicator
     if (Mode) {
-    	// print " [scroll mode] " in bottom-left
-     	mvprintw(LINES - 1, 0, " [scroll mode] ");
+    	mvprintw(LINES - 2, 0, "[ SCROLL ] Line: %d   ", Pos);
+    	mvprintw(LINES - 2, COLS - 20, "Press [h] for help.");
     }
+
+	// draw debug information
+    int y, x;
+    getyx(Pad, y, x);
+    mvprintw(LINES - 1, 0, "y: %d, x: %d   ", y, x);
+
+    // move pointer to currect place
+    if (!Mode) {
+	    int page_number = y/LINES;
+    	y = y - LINES*page_number;
+	    move(y, x);
+    }
+    
     refresh();
 }
 
@@ -193,8 +132,8 @@ void screen_refresh() {
 /* key codes */
 #define KC_ESCAPE 27
 #define KC_ENTER 13
-// without keypad() #define KC_UP 4283163
-// without keypad() #define KC_DOWN 4348699
+// #define KC_UP 4283163
+// #define KC_DOWN 4348699
 #define KC_UP 4280091
 #define KC_DOWN 4345627
 #define KC_PAGEUP 2117425947
@@ -204,8 +143,8 @@ void screen_refresh() {
 
 /* actions */
 void screen_action_line_up() {
-	if (Top > 0) {
-		Top -= 1;
+	if (Pos > 0) {
+		Pos -= 1;
 		screen_refresh();
 	} else {
 		beep();
@@ -214,8 +153,10 @@ void screen_action_line_up() {
 }
 
 void screen_action_line_down() {
-	if ((Top + LINES) < (BUFFER_LINES * BUFFER_PAGES)) {
-		Top += 1;
+	int lines = Pos + LINES;
+	lines = Mode? lines-1 : lines;
+	if (lines < LINES*PAGES) {
+		Pos += 1;
 		screen_refresh();
 	} else {
 		beep();
@@ -224,8 +165,8 @@ void screen_action_line_down() {
 }
 
 void screen_action_page_up() {
-	if (Top - LINES >= 0) {
-		Top -= LINES;
+	if (Pos - LINES > 0) {
+		Pos -= LINES;
 		screen_refresh();
 	} else {
 		beep();
@@ -234,8 +175,10 @@ void screen_action_page_up() {
 }
 
 void screen_action_page_down() {
-	if ((Top + (2*LINES)) < (BUFFER_LINES * BUFFER_PAGES)) {
-		Top += LINES;
+	int lines = Pos + LINES;
+	lines = Mode? lines-1 : lines;
+	if (lines < LINES*PAGES) {
+		Pos += LINES;
 		screen_refresh();
 	} else {
 		beep();
@@ -244,45 +187,34 @@ void screen_action_page_down() {
 }
 
 void screen_action_scroll_top() {
-	Top = 0;
+	Pos = 0;
 	screen_refresh();
 }
 
 void screen_action_scroll_end() {
-	Top = (BUFFER_LINES*BUFFER_PAGES) - LINES - 1;
+	Pos = LINES * (PAGES - 1);
+	screen_refresh();
+}
+
+void screen_action_normal_mode() {
+	Mode = false;
 	screen_refresh();
 }
 
 void screen_action_scroll_mode() {
 	Mode = true;
-
-	// TODO: show a 'waiting for key press' message on bottom or top of screen
-
-	//screen_message("scroll mode enabled.");
-	//sleep(1);
 	screen_refresh();	
 }
 
-void screen_action_normal_mode() {
-	Mode = false;
-	if (Y >= LINES) {
-		Top = Y - LINES + 1;
-	}
-	
-	//screen_message("scroll mode disabled.");
-	//sleep(1);
-	screen_refresh();
-}
-
 void screen_action_help() {
-	screen_message( "[Esc]       send escape to child\n"
-					"[Up]        scroll up\n"
-					"[Down]      scroll down\n"
-					"[Page up]   scroll one page up\n"
-					"[Page down] scroll one page down\n"
-					"[r]         refresh screen (to show terminal again)\n"
-					"[q]         quit\n"
-					);
+	screen_printf("[Esc]       send escape to child\n"
+				  "[Up]        scroll up\n"
+				  "[Down]      scroll down\n"
+				  "[Page up]   scroll one page up\n"
+				  "[Page down] scroll one page down\n"
+				  "[r]         refresh screen (to show terminal again)\n"
+				  "[q]         quit\n"
+				  );
 }
 
 /* handler */
@@ -338,9 +270,9 @@ void screen_handle_scroll_mode(long keycode) {
 			break;
 
 		default:
-			screen_message( "invalid key: %d\n"
-							"press [h] for help.",
-							keycode);
+			screen_printf("invalid key: %d\n"
+						 "press [h] for help.\n",
+						 keycode);
 			break;
 	}
 }

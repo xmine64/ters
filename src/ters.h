@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <unistd.h>
 #include <string.h>
 
 // panic for unexpected error
@@ -39,5 +38,7 @@ void screen_handle_user_input(long keycode);
 void screen_refresh();
 // clear buffer
 void screen_clear();
-// append data to buffer
-void buffer_append(const char *buffer, int count);
+// print buffer to screen
+void screen_print_buffer(char *buffer, int count);
+// printf a text to screen
+void screen_printf(const char *str, ...);
