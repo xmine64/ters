@@ -39,4 +39,6 @@ void screen_refresh();
 // clear buffer
 void screen_clear();
 // print buffer to screen
-void screen_print(const char *str);
+void screen_print_buffer(char *buffer, int count);
+// printf a text to screen
+void screen_printf(const char *str, ...);

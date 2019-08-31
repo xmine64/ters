@@ -22,16 +22,30 @@ bool Mode = false;
 void screen_update_pos() {
 	int y, x;
 	getyx(Pad, y, x);
+
+	int page_number = y/LINES;
 	
-	int new_pos = y - LINES - 1;
-	if (!Mode && new_pos > 0) {
-	  	Pos = new_pos;
+	if (!Mode && page_number > 0) {
+	  	Pos = page_number*LINES;
 	}
 }
 
 // print new data received from pty
-void screen_print(const char *str) {
-	waddstr(Pad, str);
+void screen_print_buffer(char *buffer, int count) {
+	for (int i=0; i < count; i++) {
+		if (buffer[i] == '\a') {
+			beep();
+			flash();
+			continue;
+		}
+		if (buffer[i] == '\r') {
+			continue; // should be skipped otherwise blanks current line
+		}
+		
+		if (buffer[i] != '\0') {
+			waddch(Pad, buffer[i]);
+		}
+	}
 	
 	screen_update_pos();
 	screen_refresh();
@@ -67,8 +81,8 @@ void screen_init() {
 
     Pad = newpad(LINES*PAGES, COLS);
 
-    screen_print("Ters, The Terminal Scroller\n"
-    			 "v0.1 alpha (EXPERIMENTAL)\n\n");
+    screen_printf("Ters, The Terminal Scroller\n"
+    			  "v0.1 alpha (EXPERIMENTAL)\n\n");
 }
 
 // close ncurses
@@ -187,14 +201,14 @@ void screen_action_scroll_mode() {
 }
 
 void screen_action_help() {
-	screen_print("[Esc]       send escape to child\n"
-				 "[Up]        scroll up\n"
-				 "[Down]      scroll down\n"
-				 "[Page up]   scroll one page up\n"
-				 "[Page down] scroll one page down\n"
-				 "[r]         refresh screen (to show terminal again)\n"
-				 "[q]         quit\n"
-					);
+	screen_printf("[Esc]       send escape to child\n"
+				  "[Up]        scroll up\n"
+				  "[Down]      scroll down\n"
+				  "[Page up]   scroll one page up\n"
+				  "[Page down] scroll one page down\n"
+				  "[r]         refresh screen (to show terminal again)\n"
+				  "[q]         quit\n"
+				  );
 }
 
 /* handler */
