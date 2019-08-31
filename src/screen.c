@@ -102,25 +102,22 @@ void screen_close() {
 // render buffer to screen
 void screen_refresh() {
 	// refresh Pad
-	int lines = Mode? LINES - 2 : LINES - 1;
+	int lines = Mode? LINES - 1 : LINES;
     prefresh(Pad, Pos, 0, 0, 0, lines - 1, COLS - 1);
 
     // draw scroll indicator
     if (Mode) {
-    	mvprintw(LINES - 2, 0, "[ SCROLL ] Line: %d   ", Pos);
-    	mvprintw(LINES - 2, COLS - 20, "Press [h] for help.");
+    	mvprintw(LINES - 1, 0, "[ SCROLL ] Line: %d   ", Pos);
+    	mvprintw(LINES - 1, COLS - 20, "Press [h] for help.");
     }
-
-	// draw debug information
-    int y, x;
-    getyx(Pad, y, x);
-    mvprintw(LINES - 1, 0, "y: %d, x: %d   ", y, x);
 
     // move pointer to currect place
     if (!Mode) {
-	    int page_number = y/LINES;
-    	y = y - LINES*page_number;
-	    move(y, x);
+    	int y, x;
+    	getyx(Pad, y, x);
+		int page_number = y/LINES;
+		y = y - LINES*page_number;
+		move(y, x);
     }
     
     refresh();
