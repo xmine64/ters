@@ -20,10 +20,7 @@ bool Mode = false;
 
 // update scroller pos after printing
 void screen_update_pos() {
-	int y, x;
-	getyx(Pad, y, x);
-
-	int new_pos = y - LINES + 1;
+	int new_pos = getcury(Pad) - LINES + 1;
 	
 	if (!Mode && new_pos > 0) {
 	  	Pos = new_pos;
