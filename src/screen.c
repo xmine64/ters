@@ -32,18 +32,24 @@ void screen_update_pos() {
 
 // print new data received from pty
 void screen_print_buffer(char *buffer, int count) {
+	int y, x;
 	for (int i=0; i < count; i++) {
-		if (buffer[i] == '\a') {
-			beep();
-			flash();
-			continue;
-		}
-		if (buffer[i] == '\r') {
-			continue; // should be skipped otherwise blanks current line
-		}
-		
-		if (buffer[i] != '\0') {
-			waddch(Pad, buffer[i]);
+		switch (buffer[i]) {
+			case '\a':
+				beep();
+				flash();
+				break;
+			case '\r':
+				getyx(Pad, y, x);
+				wmove(Pad, y, 0);
+				break;
+			case '\n':
+				getyx(Pad, y, x);
+				wmove(Pad, y + 1, x);
+				break;
+			default:
+				waddch(Pad, buffer[i]);
+				break;
 		}
 	}
 	
