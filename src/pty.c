@@ -1,4 +1,4 @@
-// Pseudo Terminal utils
+// Ters PTY manager
 // Copyright (C) 2019 By Mohammad Amin Mollazadeh
 
 #include "ters.h"
@@ -7,12 +7,6 @@
 #include <errno.h>
 #include <pty.h>
 #include <sys/wait.h>
-
-//#include <sys/ioctl.h>
-//#include <ctype.h>
-//#include <signal.h>
-//#include <termios.h>
-//#include <curses.h>
 
 static pid_t ChildPid;
 static int MasterFd = -1;
@@ -34,31 +28,27 @@ void sigchld(int a) {
 	else if (WIFSIGNALED(stat))
 		panic("[SIGCHLD] child terminated due to signal %d\n", WTERMSIG(stat));
 
-	events_stop();
+	events_loop_stop();
 }
 
 // the forked process that starts shell
 void child_process() {
-	// close standard input/output
 	close(STDOUT_FILENO);
 			
 	// create new process group
 	setsid();
 
-	// duplicate PTY fd to standard I/O fds
+	// setup standard I/O
   	dup2(SlaveFd, STDIN_FILENO);
     dup2(SlaveFd, STDOUT_FILENO);
     dup2(SlaveFd, STDERR_FILENO);
 
-	// I don't know what does it do but it's required to /bin/sh work well.
     if (ioctl(SlaveFd, TIOCSCTTY, NULL) < 0)
 	    panic("[PANIC] ioctl TIOCSCTTY: %s\n", strerror(errno));
 
-	// after duplicating them we don't need them anymore.
     close(SlaveFd);
     close(MasterFd);
 
-	// setting up signals
     signal(SIGCHLD, SIG_DFL);
     signal(SIGHUP, SIG_DFL);
     signal(SIGINT, SIG_DFL);
@@ -71,12 +61,6 @@ void child_process() {
     unsetenv("LINES");
     unsetenv("TERMCAP");
     unsetenv("TERM");
-	
-    // TODO: Parse passwd
-    //setenv("LOGNAME", pw->pw_name, 1);
-    //setenv("USER", pw->pw_name, 1);
-    //setenv("SHELL", sh, 1);
-    //setenv("HOME", pw->pw_dir, 1);
 	
     setenv("TERM", "dumb", 1);
 	
@@ -122,7 +106,7 @@ int pty_init() {
 }
 
 // write buffer to master side of pty
-void pty_send(char *buffer, int count) {
+void pty_write(char *buffer, int count) {
     write(MasterFd, buffer, count);
 }
 
@@ -136,5 +120,5 @@ void pty_send_keypress(long keycode) {
 		i++;
 	}
 	
-	pty_send(buffer, i + 1);
+	pty_write(buffer, i + 1);
 }

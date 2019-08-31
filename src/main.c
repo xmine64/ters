@@ -8,9 +8,15 @@
 
 static int PtyFd = -1;
 
+static int ResourceFreed = false;
+
 void free_resources() {
-    screen_close();
-    close(PtyFd);
+	if (!ResourceFreed) {
+	    screen_close();
+	    close(PtyFd);
+	    ResourceFreed = true;
+    }
+    printf("free_resources() called.\n");
 }
 
 int main() {
@@ -30,11 +36,7 @@ int main() {
 	events_init(PtyFd);
 
 	// start main loop
-	events_loop();
-
-	// exiting
-	screen_close();
-	close(PtyFd);
+	events_loop_start();
 }
 
 // close resource and show error message when an unexpected error occurs.

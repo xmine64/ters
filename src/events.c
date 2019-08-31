@@ -17,11 +17,12 @@ static struct event *ev_pty;
 // the event of receiving data from standard input
 static struct event *ev_stdin;
 
-// callback function for ev_pty
 void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
+	// count pending data on pty
 	int count;
 	ioctl(fd, FIONREAD, &count);
 	if (count > 0) {
+		// allocate memory for it and read data
 		char *buf = malloc(count);
 	    read(fd, buf, count);
     	screen_print_buffer(buf, count);
@@ -29,7 +30,8 @@ void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
     }
 }
 
-// convert key buffer to key code
+// convert array of 8 chars (64-bit) to long (64-bit)
+// for converting key buffer to key code
 long kb_to_kc(char *buffer, int count) {
 	char buf[] = {0, 0, 0, 0, 0, 0, 0, 0};
 	memcpy(buf, buffer, count);
@@ -37,19 +39,17 @@ long kb_to_kc(char *buffer, int count) {
 	return keycode;
 }
 
-// callback function for ev_stdin
 void events_callback_stdin(evutil_socket_t fd, short ev, void * arg) {
     char buf[8];
     int count = read(fd, buf, 8);
     int key = kb_to_kc(buf, count);
     if (count > 0)
-        screen_handle_user_input(key);
+        input_handler_handle(key);
 }
 
-// initialize event handler and create an event for pty_fd
 void events_init(int pty_fd) {
     ev_base = event_base_new();
-    
+
     ev_pty = event_new(ev_base, pty_fd, EV_READ | EV_PERSIST, events_callback_pty, NULL);
     if (event_add(ev_pty, NULL) != 0)
             panic("[PANIC] event_add(ev_pty, NULL) failed.\n");
@@ -59,10 +59,10 @@ void events_init(int pty_fd) {
         panic("[PANIC] event_add(ev_stdin, NULL) failed.\n");
 }
 
-void events_loop() {
+void events_loop_start() {
     event_base_loop(ev_base, EVLOOP_NO_EXIT_ON_EMPTY);
 }
 
-void events_stop() {
+void events_loop_stop() {
     event_base_loopexit(ev_base, NULL);
 }
