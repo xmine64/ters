@@ -23,7 +23,7 @@ void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
 	ioctl(fd, FIONREAD, &count);
 	if (count > 0) {
 		// allocate memory for it and read data
-		char *buf = malloc(count);
+		u_char *buf = malloc(count);
 	    read(fd, buf, count);
     	screen_print_buffer(buf, count);
 	    free(buf);

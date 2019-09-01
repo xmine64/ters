@@ -94,7 +94,7 @@ void screen_beep() {
 }
 
 // print new data received from pty
-void screen_print_buffer(char *buffer, int count) {
+void screen_print_buffer(u_char *buffer, int count) {
 	for (int i=0; i < count; i++) {
 		switch (buffer[i]) {
 			// beep

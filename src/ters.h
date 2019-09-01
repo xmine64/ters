@@ -29,7 +29,7 @@ void screen_close();
 void screen_refresh();
 void screen_clear();
 void screen_beep();
-void screen_print_buffer(char *buffer, int count);
+void screen_print_buffer(u_char *buffer, int count);
 
 void screen_popup(int width, int height, char **lines);
 bool screen_is_popup();
