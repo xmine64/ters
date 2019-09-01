@@ -29,10 +29,13 @@ void screen_init() {
     curs_set(0); // hide terminal emulator's cursor
 
 	Status = newwin(1, COLS-1, LINES-1, 0);
-    Pad = newpad(LINES*PAGES, COLS);
+	wbkgd(Status, COLOR_PAIR(1));
+	box(Status, 0, 0);
 
    	Cursor = newwin(1, 1, 0, 0);
    	waddch(Cursor, ACS_BOARD);
+
+   	Pad = newpad(LINES*PAGES, COLS);
 
     wprintw(Pad, "Ters Terminal Scroller v0.1 (EXPERIMENTAL)\n"
     			 "Press [Esc] then [h] for help.\n\n");
