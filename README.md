@@ -15,7 +15,6 @@ to back normal mode, you should press <kbd>Enter</kbd>.
 * Scroll by keyboard
 
 # TODO
-* an improved user interface
 * ANSI Escape Sequences and Terminfo
 * Support for user configurations
 * Scroll with mouse
