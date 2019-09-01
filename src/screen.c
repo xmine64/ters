@@ -3,6 +3,7 @@
 
 #include "ters.h"
 
+#include <locale.h>
 #include <curses.h>
 
 // the scrollable window
@@ -12,8 +13,10 @@ static WINDOW *Status;
 static WINDOW *Cursor;
 static WINDOW *Popup = NULL;
 
-
 void screen_init() {
+	// it's required to show box drawings correctly
+	setlocale(LC_ALL, "");
+	
     initscr();
     raw();
     noecho();
