@@ -32,15 +32,15 @@ void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
 
 // convert array of 8 chars (64-bit) to long (64-bit)
 // for converting key buffer to key code
-long kb_to_kc(char *buffer, int count) {
-	char buf[] = {0, 0, 0, 0, 0, 0, 0, 0};
+long kb_to_kc(u_char *buffer, int count) {
+	u_char buf[] = {0, 0, 0, 0, 0, 0, 0, 0};
 	memcpy(buf, buffer, count);
-	long keycode = *(int*)buf;
+	long keycode = *(long*)buf;
 	return keycode;
 }
 
 void events_callback_stdin(evutil_socket_t fd, short ev, void * arg) {
-    char buf[8];
+    u_char buf[8];
     int count = read(fd, buf, 8);
     int key = kb_to_kc(buf, count);
     if (count > 0)
