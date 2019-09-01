@@ -54,16 +54,20 @@ void actions_scroll_end() {
 
 void actions_help() {
 	char *body[] = {
-		" [Esc]       send escape to child",
-		" [Up]        scroll up",
-		" [Down]      scroll down",
-		" [Page up]   scroll one page up",
-		" [Page down] scroll one page down",
-		" [r]         refresh screen (to show terminal again)",
-		" [q]         quit",
+		"Ters, the Terminal Scroller",
+		"",
+		"Keymaps in scroll mode:",
+		" [Enter]      back to normal mode",
+		" [Esc]        send escape to child",
+		" [Up]         scroll up",
+		" [Down]       scroll down",
+		" [Page up]    scroll one page up",
+		" [Page down]  scroll one page down",
+		" [r]          refresh screen",
+		" [q]          quit",
 		"",
 		"",
 		"Press any key to close..."
 	};
-	screen_popup(55, 10, body);
+	screen_popup(50, 14, body);
 }

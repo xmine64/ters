@@ -63,6 +63,7 @@ void child_process() {
     unsetenv("TERM");
 	
     setenv("TERM", "dumb", 1);
+    setenv("PS1", "ters> ", 1);
 	
     // start shell
     char *const shell_args[] = { "/bin/sh", "-", NULL };

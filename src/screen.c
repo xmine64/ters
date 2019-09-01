@@ -34,8 +34,8 @@ void screen_init() {
    	Cursor = newwin(1, 1, 0, 0);
    	waddch(Cursor, ACS_BOARD);
 
-    wprintw(Pad, "Ters, The Terminal Scroller\n"
-    			 "v0.1 alpha (EXPERIMENTAL)\n\n");
+    wprintw(Pad, "Ters Terminal Scroller v0.1 (EXPERIMENTAL)\n"
+    			 "Press [Esc] then [h] for help.\n\n");
 }
 
 void screen_close() {
