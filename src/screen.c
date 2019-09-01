@@ -7,6 +7,8 @@
 
 // the scrollable window
 static WINDOW *Pad;
+// the status window
+static WINDOW *Status;
 // the popup window
 static WINDOW *Popup = NULL;
 
@@ -22,6 +24,7 @@ void screen_init() {
 	    init_pair(1, COLOR_WHITE, COLOR_BLUE);
     }
 
+	Status = newwin(1, COLS-1, LINES-1, 0);
     Pad = newpad(LINES*PAGES, COLS);
 
     wprintw(Pad, "Ters, The Terminal Scroller\n"
@@ -39,22 +42,21 @@ void screen_close() {
 void screen_refresh() {
 	if (screen_get_mode()) {
 		// draw scroll indicator
-    	mvprintw(LINES - 1, 0, "[ SCROLL ] Line: %d   ", screen_get_pos());
-    	mvprintw(LINES - 1, COLS - 20, "Press [h] for help.");
+    	mvwprintw(Status, 0, 0, "[ SCROLL ] Line: %d   ", screen_get_pos());
+    	mvwprintw(Status, 0, getmaxx(Status) - 20, "Press [h] for help.");
 
-    	// move cursor to correct place
-    	int y, x;
-    	getyx(Pad, y, x);
-    	move(y > LINES? LINES-1 : y, x);
+		// move cursor to bottom-right of screen
+		move(LINES - 1, COLS - 1);
     	
-    	refresh();
+    	wrefresh(Status);
 	} else {
 		// update scroller position
 		int new_pos = getcury(Pad) - LINES + 1;
 		screen_scroll_to(new_pos < 0? 0 : new_pos);
-
-		// move cursor to bottom-right of screen
-		move(LINES - 1, COLS - 1);
+		// move cursor to correct place
+		int y, x;
+		getyx(Pad, y, x);
+		move(y > LINES? LINES-1 : y, x);
 	}
 
 	// refresh Pad
