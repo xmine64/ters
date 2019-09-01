@@ -41,8 +41,9 @@ void handle_scroll_mode(long keycode) {
 		case KC_PAGEDOWN:
 			actions_page_down();
 			break;
-			
+
 		case KC_HOME:
+		case KC_HOME_1:
 			actions_scroll_top();
 			break;
 		case KC_END:

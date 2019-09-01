@@ -52,12 +52,14 @@ int screen_get_lines_in_page(); // get total lines in each page
 #define KC_ENTER 13
 #define KC_UP 4283163
 #define KC_DOWN 4348699
-#define KC_UP_1 4280091
-#define KC_DOWN_1 4345627
 #define KC_PAGEUP 2117425947
 #define KC_PAGEDOWN 2117491483
 #define KC_HOME 2117163803
 #define KC_END 2117360411
+// some keycodes are different in different terminals
+#define KC_HOME_1 4741915
+#define KC_UP_1 4280091
+#define KC_DOWN_1 4345627
 
 void input_handler_handle(long keycode);
 
