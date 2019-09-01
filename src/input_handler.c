@@ -3,6 +3,17 @@
 
 #include "ters.h"
 
+void invalid_key_error(long keycode) {
+	char error[30];
+	sprintf(error, "invalid key: %d", keycode);
+	char *body[] = {
+		error,
+		"",
+		"press [h] for help."
+	};
+	screen_popup(30, 3, body);
+}
+
 void handle_scroll_mode(long keycode) {
 	switch (keycode) {
 		// send [Esc] to running program, by double-pressing [Esc]
@@ -50,14 +61,16 @@ void handle_scroll_mode(long keycode) {
 			break;
 
 		default:
-			screen_printf("invalid key: %d\n"
-						  "press [h] for help.\n",
-						  keycode);
+			invalid_key_error(keycode);
 			break;
 	}
 }
 
 void input_handler_handle(long keycode) {
+	if (screen_is_popup()) {
+		screen_close_popup();
+		return;
+	}
 	if (screen_get_mode()) {
 		handle_scroll_mode(keycode);
 	} else {

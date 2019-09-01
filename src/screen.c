@@ -7,20 +7,31 @@
 
 // the scrollable window
 static WINDOW *Pad;
+// the popup window
+static WINDOW *Popup = NULL;
 
 void screen_init() {
     initscr();
     raw();
     noecho();
     keypad(stdscr, TRUE);
+    if (has_colors()) {
+	    use_default_colors();
+	    start_color();
+	    // color pair for popup windows
+	    init_pair(1, COLOR_WHITE, COLOR_BLUE);
+    }
 
     Pad = newpad(LINES*PAGES, COLS);
 
-    screen_printf("Ters, The Terminal Scroller\n"
-    			  "v0.1 alpha (EXPERIMENTAL)\n\n");
+    wprintw(Pad, "Ters, The Terminal Scroller\n"
+    			 "v0.1 alpha (EXPERIMENTAL)\n\n");
 }
 
 void screen_close() {
+	if (screen_is_popup()) {
+		delwin(Popup);
+	}
 	delwin(Pad);
     endwin();
 }
@@ -49,6 +60,11 @@ void screen_refresh() {
 	// refresh Pad
 	prefresh(Pad, screen_get_pos(), 0, 0, 0,
 			 screen_get_lines_in_page()-1, COLS - 1);
+
+	// refresh Popup Window
+	if (screen_is_popup()) {
+		wrefresh(Popup);
+	}
 }
 
 void screen_clear() {
@@ -62,17 +78,6 @@ void screen_clear() {
 void screen_beep() {
 	beep();
 	flash();
-}
-
-////////////////////////////////////////
-
-void screen_printf(const char *str, ...) {
-	va_list ap;
-	va_start(ap, str);
-	vwprintw(Pad, str, ap);
-	va_end(ap);
-
-	screen_refresh();
 }
 
 // print new data received from pty
@@ -98,6 +103,45 @@ void screen_print_buffer(char *buffer, int count) {
 		}
 	}
 	
+	screen_refresh();
+}
+
+//////////////////////////////////////////
+
+void screen_popup(int width, int height, char** lines) {
+	int cols = width+2;
+	int rows = height+2;
+	int x = (COLS-cols+1)/2;
+	int y = (LINES-rows+1)/2;
+
+	if (cols > COLS) {
+		cols = COLS-1;
+		x = 0;
+	}
+	if (rows > LINES) {
+		rows = LINES-1;
+		y = 0;
+	}
+
+	Popup = newwin(rows, cols, y, x);
+	wbkgd(Popup, COLOR_PAIR(1));
+	box(Popup, 0, 0);
+
+	for (int i=0; i < height; i++) {
+		wmove(Popup, i+1, 1);
+		wprintw(Popup, lines[i]);
+	}
+	
+	screen_refresh();
+}
+
+bool screen_is_popup() {
+	return Popup != NULL;
+}
+
+void screen_close_popup() {
+	delwin(Popup);
+	Popup = NULL;
 	screen_refresh();
 }
 
@@ -152,3 +196,5 @@ bool screen_scroll_to(int line) {
 	Pos = line;
 	return true;
 }
+
+

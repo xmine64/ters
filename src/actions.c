@@ -53,12 +53,17 @@ void actions_scroll_end() {
 }
 
 void actions_help() {
-	screen_printf("[Esc]       send escape to child\n"
-				  "[Up]        scroll up\n"
-				  "[Down]      scroll down\n"
-				  "[Page up]   scroll one page up\n"
-				  "[Page down] scroll one page down\n"
-				  "[r]         refresh screen (to show terminal again)\n"
-				  "[q]         quit\n"
-				  );
+	char *body[] = {
+		" [Esc]       send escape to child",
+		" [Up]        scroll up",
+		" [Down]      scroll down",
+		" [Page up]   scroll one page up",
+		" [Page down] scroll one page down",
+		" [r]         refresh screen (to show terminal again)",
+		" [q]         quit",
+		"",
+		"",
+		"Press any key to close..."
+	};
+	screen_popup(55, 10, body);
 }
