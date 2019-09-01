@@ -7,10 +7,11 @@
 
 // the scrollable window
 static WINDOW *Pad;
-// the status window
+
 static WINDOW *Status;
-// the popup window
+static WINDOW *Cursor;
 static WINDOW *Popup = NULL;
+
 
 void screen_init() {
     initscr();
@@ -22,9 +23,13 @@ void screen_init() {
 	    // color pair for popup windows
 	    init_pair(1, COLOR_WHITE, COLOR_BLUE);
     }
+    curs_set(0); // hide terminal emulator's cursor
 
 	Status = newwin(1, COLS-1, LINES-1, 0);
     Pad = newpad(LINES*PAGES, COLS);
+
+   	Cursor = newwin(1, 1, 0, 0);
+   	waddch(Cursor, ACS_BOARD);
 
     wprintw(Pad, "Ters, The Terminal Scroller\n"
     			 "v0.1 alpha (EXPERIMENTAL)\n\n");
@@ -39,7 +44,7 @@ void screen_close() {
 }
 
 void screen_refresh() {
-	if (screen_get_mode()) {
+		if (screen_get_mode()) {
 		// reset status window (prevent from breaking on terminal resize)
 		wclear(Status);
 		mvwin(Status, LINES-1, 0);
@@ -49,24 +54,23 @@ void screen_refresh() {
     	mvwprintw(Status, 0, 0, "[ SCROLL ] Line: %d   ", screen_get_pos());
     	mvwprintw(Status, 0, COLS - 19, "Press [h] for help");
 
-		// move cursor to bottom-right of screen
-		move(LINES - 1, COLS - 1);
-    	
     	wrefresh(Status);
 	} else {
 		// update scroller position
 		int new_pos = getcury(Pad) - LINES + 1;
 		screen_scroll_to(new_pos < 0? 0 : new_pos);
-		// move cursor to correct place
-		int y, x;
-		getyx(Pad, y, x);
-		move(y > LINES? LINES-1 : y, x);
+		// move cursor
+		int cury, curx;
+		getyx(Pad, cury, curx);
+		cury = cury > LINES? LINES-1 : cury;
+		mvwin(Cursor, cury, curx);
 	}
 
 	// refresh Pad
 	prefresh(Pad, screen_get_pos(), 0, 0, 0,
 			 screen_get_lines_in_page()-1, COLS - 1);
-
+	wrefresh(Cursor);
+	
 	// refresh Popup Window
 	if (screen_is_popup()) {
 		wrefresh(Popup);
