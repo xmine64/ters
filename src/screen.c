@@ -16,7 +16,6 @@ void screen_init() {
     initscr();
     raw();
     noecho();
-    keypad(stdscr, TRUE);
     if (has_colors()) {
 	    use_default_colors();
 	    start_color();
@@ -198,5 +197,3 @@ bool screen_scroll_to(int line) {
 	Pos = line;
 	return true;
 }
-
-

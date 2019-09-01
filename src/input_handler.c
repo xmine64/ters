@@ -25,11 +25,13 @@ void handle_scroll_mode(long keycode) {
 		case KC_ENTER:
 			screen_set_mode(false);
 			break;
-			
-		case KC_UP:
+
+		case KC_UP:	
+		case KC_UP_1:
 			actions_line_up();
 			break;
 		case KC_DOWN:
+		case KC_DOWN_1:
 			actions_line_down();
 			break;
 			
