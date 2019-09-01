@@ -40,7 +40,7 @@ void screen_refresh() {
 	} else {
 		// update scroller position
 		int new_pos = getcury(Pad) - LINES + 1;
-		screen_scroll_to(new_pos > 0? new_pos : 0);
+		screen_scroll_to(new_pos < 0? 0 : new_pos);
 
 		// move cursor to bottom-right of screen
 		move(LINES - 1, COLS - 1);
@@ -144,10 +144,11 @@ bool screen_scroll(int lines) {
 }
 
 bool screen_scroll_to(int line) {
+	if (Pos == line) return false;
 	if (line < 0 ||
 		line+screen_get_lines_in_page() - 1 > getcury(Pad))
-			return false;
-			
+		return false;
+	
 	Pos = line;
 	return true;
 }

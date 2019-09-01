@@ -24,26 +24,32 @@ void actions_page_up() {
 	if (screen_scroll(0-screen_get_lines_in_page())) {
 		screen_refresh();
 	} else {
-		screen_beep();
+		actions_scroll_top();
 	}
 }
 
 void actions_page_down() {
-	if (screen_scroll(screen_get_lines_in_page())) {
+	if (screen_scroll(screen_get_lines_in_page()-1)) {
+		screen_refresh();
+	} else {
+		actions_scroll_end();
+	}
+}
+
+void actions_scroll_top() {
+	if (screen_scroll_to(0)) {
 		screen_refresh();
 	} else {
 		screen_beep();
 	}
 }
 
-void actions_scroll_top() {
-	screen_scroll_to(0);
-	screen_refresh();
-}
-
 void actions_scroll_end() {
-	screen_scroll_to(screen_get_line() - screen_get_lines_in_page() + 1);
-	screen_refresh();
+	if (screen_scroll_to(screen_get_line() - screen_get_lines_in_page() + 1)) {
+		screen_refresh();
+	} else {
+		screen_beep();
+	}
 }
 
 void actions_help() {
