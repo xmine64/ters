@@ -40,9 +40,14 @@ void screen_close() {
 
 void screen_refresh() {
 	if (screen_get_mode()) {
+		// reset status window (prevent from breaking on terminal resize)
+		wclear(Status);
+		mvwin(Status, LINES-1, 0);
+		wresize(Status, 1, COLS-1);
+		
 		// draw scroll indicator
     	mvwprintw(Status, 0, 0, "[ SCROLL ] Line: %d   ", screen_get_pos());
-    	mvwprintw(Status, 0, getmaxx(Status) - 20, "Press [h] for help.");
+    	mvwprintw(Status, 0, COLS - 19, "Press [h] for help");
 
 		// move cursor to bottom-right of screen
 		move(LINES - 1, COLS - 1);
@@ -125,13 +130,14 @@ void screen_popup(int width, int height, char** lines) {
 	}
 
 	Popup = newwin(rows, cols, y, x);
-	wbkgd(Popup, COLOR_PAIR(1));
-	box(Popup, 0, 0);
 
 	for (int i=0; i < height; i++) {
 		wmove(Popup, i+1, 1);
 		wprintw(Popup, lines[i]);
 	}
+
+	wbkgd(Popup, COLOR_PAIR(1));
+	box(Popup, 0, 0);
 	
 	screen_refresh();
 }
