@@ -47,6 +47,7 @@ void handle_scroll_mode(long keycode) {
 			actions_scroll_top();
 			break;
 		case KC_END:
+		case KC_END_1:
 			actions_scroll_end();
 			break;
 			
