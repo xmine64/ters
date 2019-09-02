@@ -33,7 +33,7 @@ void screen_init() {
 	box(Status, 0, 0);
 
    	Cursor = newwin(1, 1, 0, 0);
-   	waddch(Cursor, ACS_BOARD);
+   	waddch(Cursor, ACS_CKBOARD);
 
    	Pad = newpad(LINES*PAGES, COLS);
 
