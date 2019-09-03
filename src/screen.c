@@ -2,6 +2,7 @@
 // Copyright (C) 2019 By Mohammad Amin Mollazadeh
 
 #include "ters.h"
+#include "vt.h"
 
 #include <locale.h>
 #include <curses.h>
@@ -36,9 +37,6 @@ void screen_init() {
    	waddch(Cursor, ACS_CKBOARD);
 
    	Pad = newpad(LINES*PAGES, COLS);
-
-    wprintw(Pad, "Ters Terminal Scroller v0.1 (EXPERIMENTAL)\n"
-    			 "Press [Esc] then [h] for help.\n\n");
 }
 
 void screen_close() {
@@ -96,30 +94,12 @@ void screen_beep() {
 	flash();
 }
 
-// print new data received from pty
-void screen_print_buffer(u_char *buffer, int count) {
-	for (int i=0; i < count; i++) {
-		switch (buffer[i]) {
-			// beep
-			case '\a':
-				screen_beep();
-				break;
-			// move cursor to start of line
-			case '\r':
-				wmove(Pad, getcury(Pad), 0);
-				break;
-			// move cursor to next line
-			case '\n':
-				wmove(Pad, getcury(Pad) + 1, getcurx(Pad));
-				break;
-			
-			default:
-				waddch(Pad, buffer[i]);
-				break;
-		}
-	}
-	
-	screen_refresh();
+void screen_printf(const char *message, ...) {
+    va_list ap;
+
+    va_start(ap, message);
+    vwprintw(Pad, message, ap);
+    va_end(ap);
 }
 
 //////////////////////////////////////////
@@ -212,4 +192,35 @@ bool screen_scroll_to(int line) {
 	
 	Pos = line;
 	return true;
+}
+
+
+/////////////////////////////////////
+void screen_addch(u_char c) {
+	waddch(Pad, c);
+}
+
+void screen_vt_cr() {
+    wmove(Pad, getcury(Pad), 0);
+}
+
+void screen_vt_lf() {
+    wmove(Pad, getcury(Pad) + 1, getcurx(Pad));
+}
+
+void screen_vt_bs() {
+	wmove(Pad, getcury(Pad), getcurx(Pad) - 1);
+}
+
+void screen_vt_vtab() {
+	// TODO
+}
+
+void screen_vt_htab() {
+	int x = getcurx(Pad) + TAB_SIZE;
+	if (x > COLS) {
+		screen_vt_lf();
+	} else {
+		wmove(Pad, getcury(Pad), x);
+	}
 }

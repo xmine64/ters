@@ -25,7 +25,7 @@ void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
 		// allocate memory for it and read data
 		u_char *buf = malloc(count);
 	    read(fd, buf, count);
-    	screen_print_buffer(buf, count);
+    	vt_print_buffer(buf, count);
 	    free(buf);
     }
 }

@@ -29,7 +29,7 @@ void screen_close();
 void screen_refresh();
 void screen_clear();
 void screen_beep();
-void screen_print_buffer(u_char *buffer, int count);
+void screen_printf(const char *message, ...);
 
 void screen_popup(int width, int height, char **lines);
 bool screen_is_popup();
@@ -72,3 +72,6 @@ void actions_page_down();
 void actions_scroll_top();
 void actions_scroll_end();
 void actions_help();
+
+/* vt */
+void vt_print_buffer(u_char *buffer, int count);

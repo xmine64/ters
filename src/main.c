@@ -20,8 +20,7 @@ void free_resources() {
 }
 
 int main() {
-	printf("Terminal Scroller v0.1 alpha\n"
-		   "Copyright (C) 2019 By Mohammad Amin Mollazadeh\n\n");
+	printf("Ters is starting up...\n");
 
 	// initialize pty
 	PtyFd = pty_init();
@@ -31,6 +30,11 @@ int main() {
 
     // close resources on exit
     atexit(free_resources);
+
+    // print help message
+    screen_printf("Ters, the Terminal Scroller, v0.2 (EXPERIMENTAL)\n"
+                  "Copyright (C) 2019 By Mohammad Amin Mollazadeh\n\n"
+				  "Press [Esc] then [h] for help.\n\n");
 
 	// initialize event handler
 	events_init(PtyFd);
