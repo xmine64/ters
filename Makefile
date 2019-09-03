@@ -33,6 +33,9 @@ build/ters: $(OBJ)
 build/obj/%.o: src/%.c
 	$(CC) -g -c $< -o $@
 
+run: build/ters
+	build/ters
+
 clean:
 	rm -rf build/ters $(OBJ)
 

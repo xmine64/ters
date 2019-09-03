@@ -3,7 +3,6 @@
 
 #define TAB_SIZE 8
 
-// From ANSI standard, Joe Smith, 18-May-84
 // C0 set of 7-bit control characters
 #define NUL     0x00
 #define SOH     0x01

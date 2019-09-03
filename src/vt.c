@@ -35,7 +35,7 @@ void vt_print_buffer(u_char *buffer, int count) {
 			case GS:
 			case RS:
 			case US:
-				screen_printf("\nVT: Unimplemented C0 Control Char `%d`\n\n", buffer[i]);
+				screen_printf("^%c", buffer[i] + 64);
 				break;
 			case BS:
 				screen_vt_bs();
@@ -80,7 +80,7 @@ void vt_print_buffer(u_char *buffer, int count) {
 			case OSC:
 			case PM:
 			case APC:
-				screen_printf("\nVT: Unimplemented C1 Control Char `%d`\n\n", buffer[i]);
+				screen_printf("0x%x ", buffer[i]);
 				break;
 			default:
 				screen_addch(buffer[i]);
