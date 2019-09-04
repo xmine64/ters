@@ -14,6 +14,9 @@ static WINDOW *Status;
 static WINDOW *Cursor;
 static WINDOW *Popup = NULL;
 
+static int PadCols = 0;
+static int PadLines = 0;
+
 void screen_init() {
 	// it's required to show box drawings correctly
 	setlocale(LC_ALL, "");
@@ -36,7 +39,9 @@ void screen_init() {
    	Cursor = newwin(1, 1, 0, 0);
    	waddch(Cursor, ACS_CKBOARD);
 
-   	Pad = newpad(LINES*PAGES, COLS);
+	PadLines = LINES*PAGES;
+	PadCols = COLS;
+   	Pad = newpad(PadLines, PadCols);
 }
 
 void screen_close() {
@@ -196,8 +201,33 @@ bool screen_scroll_to(int line) {
 
 
 /////////////////////////////////////
+#define CURRENT_PAGE ((getcury(Pad)/LINES)*LINES)
+
 void screen_addch(u_char c) {
 	waddch(Pad, c);
+}
+
+int screen_get_y() {
+	return getcury(Pad)%LINES;
+}
+
+int screen_get_x() {
+	return getcurx(Pad);
+}
+
+void screen_set_y(int y) {
+	wmove(Pad, ((getcury(Pad)/LINES)*LINES)+y, getcurx(Pad));
+}
+
+void screen_set_x(int x) {
+	wmove(Pad, getcury(Pad), x);
+}
+
+void screen_vt_H(int y, int x) {
+	if (y < 0 && x < 0) return;
+	if (y*COLS >= PadLines*PadCols) return;
+	if (x >= COLS) return;
+	wmove(Pad, CURRENT_PAGE+y, x);
 }
 
 void screen_vt_cr() {
@@ -205,7 +235,7 @@ void screen_vt_cr() {
 }
 
 void screen_vt_lf() {
-    wmove(Pad, getcury(Pad) + 1, getcurx(Pad));
+    wmove(Pad, getcury(Pad)+1, getcurx(Pad));
 }
 
 void screen_vt_bs() {
@@ -227,3 +257,34 @@ void screen_vt_sp() {
 void screen_vt_del() {
 	screen_addch(DEL);
 }
+
+void screen_vt_B(int lines) {
+	screen_vt_H(screen_get_y() + lines, screen_get_x());
+}
+
+void screen_vt_A(int lines) {
+	screen_vt_B(0-lines);
+}
+
+void screen_vt_C(int cols) {
+	screen_vt_H(screen_get_y(), screen_get_x() + cols);
+}
+
+void screen_vt_D(int cols) {
+	screen_vt_D(0-cols);
+}
+
+void screen_vt_K() {
+	screen_vt_cr();
+	for (int i=0; i < COLS; i++) {
+		screen_addch(' ');
+	}
+	screen_vt_cr();
+}
+
+void screen_vt_J() {
+	for (int i=0; i < COLS*LINES; i++) {
+		screen_addch(' ');
+	}
+}
+
