@@ -7,8 +7,10 @@
 #include <locale.h>
 #include <curses.h>
 
-// the scrollable window
 static WINDOW *Pad;
+
+static WINDOW *Stdout;
+static WINDOW *Debug;
 
 static WINDOW *Status;
 static WINDOW *Cursor;
@@ -41,14 +43,19 @@ void screen_init() {
 
 	PadLines = LINES*PAGES;
 	PadCols = COLS;
-   	Pad = newpad(PadLines, PadCols);
+   	Stdout = newpad(PadLines, PadCols);
+
+   	Debug = newpad(PadLines, PadCols);
+
+   	Pad = Stdout;
 }
 
 void screen_close() {
 	if (screen_is_popup()) {
 		delwin(Popup);
 	}
-	delwin(Pad);
+	delwin(Stdout);
+	delwin(Debug);
     endwin();
 }
 
@@ -89,7 +96,7 @@ void screen_refresh() {
 void screen_clear() {
 	screen_scroll_to(0);
 
-	wclear(Pad);
+	wclear(Stdout);
 	
     screen_refresh();
 }
@@ -103,8 +110,26 @@ void screen_printf(const char *message, ...) {
     va_list ap;
 
     va_start(ap, message);
-    vwprintw(Pad, message, ap);
+    vwprintw(Stdout, message, ap);
     va_end(ap);
+}
+
+void debug_printf(const char *message, ...) {
+    va_list ap;
+
+    va_start(ap, message);
+    vwprintw(Debug, message, ap);
+    va_end(ap);
+}
+
+void screen_debug(bool enabled) {
+	if (enabled) {
+		Pad = Debug;
+		screen_scroll_to(0);
+	} else {
+		Pad = Stdout;
+		screen_scroll_to(0);
+	}
 }
 
 //////////////////////////////////////////
@@ -172,7 +197,7 @@ int screen_get_lines_in_page() {
 }
 
 int screen_get_line() {
-	return getcury(Pad);
+	return getcury(Stdout);
 }
 
 //////////////////////////////////////
@@ -204,38 +229,48 @@ bool screen_scroll_to(int line) {
 #define CURRENT_PAGE ((getcury(Pad)/LINES)*LINES)
 
 void screen_addch(u_char c) {
-	waddch(Pad, c);
+	waddch(Stdout, c);
 }
 
 int screen_get_y() {
-	return getcury(Pad)%LINES;
+	int result = getcury(Stdout)%LINES;
+	debug_printf("[screen] screen_get_y(): %d \n", result);
+	return result;
 }
 
 int screen_get_x() {
-	return getcurx(Pad);
+	int result = getcurx(Stdout);
+	debug_printf("[screen] screen_get_x(): %d \n", result);
+	return result;
 }
 
 void screen_set_y(int y) {
-	wmove(Pad, ((getcury(Pad)/LINES)*LINES)+y, getcurx(Pad));
+	int pady = ((getcury(Stdout)/LINES)*LINES)+y;
+	int padx = getcurx(Stdout);
+	debug_printf("[screen] screen_set_y(%d) -> move(%d, %d) \n", y, pady, padx);
+	wmove(Stdout, pady, padx);
 }
 
 void screen_set_x(int x) {
-	wmove(Pad, getcury(Pad), x);
+	int y = getcury(Stdout);
+	debug_printf("[screen] screen_set_x(%d) -> move(%d, %d) \n", y, y, x);
+	wmove(Stdout, y, x);
 }
 
 void screen_vt_H(int y, int x) {
+	debug_printf("[screen] screen_vt_H(%d, %d), CURRENT_PAGE=%d\n", y, x, CURRENT_PAGE);
 	if (y < 0 && x < 0) return;
 	if (y*COLS >= PadLines*PadCols) return;
 	if (x >= COLS) return;
-	wmove(Pad, CURRENT_PAGE+y, x);
+	wmove(Stdout, CURRENT_PAGE+y, x);
 }
 
 void screen_vt_cr() {
-    wmove(Pad, getcury(Pad), 0);
+    wmove(Stdout, getcury(Stdout), 0);
 }
 
 void screen_vt_lf() {
-    wmove(Pad, getcury(Pad)+1, getcurx(Pad));
+    wmove(Stdout, getcury(Stdout)+1, getcurx(Stdout));
 }
 
 void screen_vt_bs() {
@@ -271,15 +306,16 @@ void screen_vt_C(int cols) {
 }
 
 void screen_vt_D(int cols) {
-	screen_vt_D(0-cols);
+	screen_vt_C(0-cols);
 }
 
 void screen_vt_K() {
-	screen_vt_cr();
-	for (int i=0; i < COLS; i++) {
-		screen_addch(' ');
+	int y = getcury(Stdout);
+	int x0 = getcurx(Stdout);
+	for (int x = x0; x < COLS; x++) {
+		mvwaddch(Stdout, y, x, ' ');
 	}
-	screen_vt_cr();
+	wmove(Stdout, y, x0);
 }
 
 void screen_vt_J() {

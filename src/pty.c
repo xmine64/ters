@@ -62,7 +62,7 @@ void child_process() {
     unsetenv("TERMCAP");
     unsetenv("TERM");
 	
-    setenv("TERM", "xterm", 1);
+    setenv("TERM", "ansi", 1);
     setenv("PS1", "ters> ", 1);
 	
     // start shell

@@ -8,14 +8,13 @@ static int SavedX = 0;
 static int SavedY = 0;
 
 int vt_read_escape_sequences(u_char *buffer, int count) {
-	if (count <= 1) return 0;
-	if (buffer[0] != '[') return 0;
-
-	int parameters[3] = {0, 0, 0};
+	if (count <= 0) return 0;
+	
+	int parameters[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 	int parameters_count = 0;
 	int parameter = 0;
 
-	int i=1;
+	int i=0;
 	for (; i < count; i++) {
 		if (buffer[i] >= '0' && buffer[i] <= '9') {
 			parameter = (parameter*10) + (buffer[i] - '0');
@@ -29,7 +28,6 @@ int vt_read_escape_sequences(u_char *buffer, int count) {
 		}
 		if (parameter > 0) {
 			parameters[parameters_count] = parameter;
-			parameter = 0;
 			parameters_count++;
 		}
 		switch (buffer[i]) {
@@ -59,6 +57,12 @@ int vt_read_escape_sequences(u_char *buffer, int count) {
 				break;
 			case 'm': // set graphic mode
 				// TODO
+				debug_printf("[vt] m[%d]:%d:%d:%d graphic mode not implemented.\n", parameters_count,
+						parameters[0], parameters[1], parameters[2]);
+				break;
+			case 'h': // set mode
+				// TODO
+				debug_printf("[vt] h:%d set mode\n", parameters[0]);
 				break;
 			case 'K':
 				screen_vt_K();
@@ -69,8 +73,12 @@ int vt_read_escape_sequences(u_char *buffer, int count) {
 					break;
 				}
 			default:
+				debug_printf("[vt] invalid/unimplemented escape sequences: [%d]: %c (%x): %d, %d, %d\n", i,
+						buffer[i], buffer[i], parameters[0], parameters[1], parameters[2]);
 				break;
 		}
+		debug_printf("[vt] command: %X, parameters: [%d] {%d, %d, %d}\n", buffer[i], parameters_count,
+				parameters[0], parameters[1], parameters[2]);
 		break;
 	}
 
@@ -104,15 +112,20 @@ void vt_print_buffer(u_char *buffer, int count) {
 			case DEL:
 				screen_vt_del();
 				break;
-			case ESC: {
-				int count = vt_read_escape_sequences(buffer + i + 1, count - i - 1);
-				if (count > 0) {
-					i += count;
-					break;
+			case ESC:
+				i++;
+				if (i < count && buffer[i] == '[') {
+					i++;
+					int seq_length = vt_read_escape_sequences(buffer + i, i);
+					debug_printf("[vt] escape sequences length: %d\n", seq_length);
+					if (seq_length > 0) {
+						i += count;
+					}
 				}
-			} // !!falls down!!
+				break;
 			// C0
-			case NUL:
+			case NUL: //ignore
+				break;
 			case SOH:
 			case STX:
 			case ETX:
@@ -174,6 +187,7 @@ void vt_print_buffer(u_char *buffer, int count) {
 			case OSC:
 			case PM:
 			case APC:
+				debug_printf("[vt] unimplemented control character: %c (%X)\n", buffer[i], buffer[i]);
 			default:
 				screen_addch(buffer[i]);
 				break;

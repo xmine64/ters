@@ -57,17 +57,19 @@ void actions_help() {
 		"Ters, the Terminal Scroller",
 		"",
 		"Keymaps in scroll mode:",
-		" [Enter]      back to normal mode",
-		" [Esc]        send escape to child",
-		" [Up]         scroll up",
-		" [Down]       scroll down",
-		" [Page up]    scroll one page up",
-		" [Page down]  scroll one page down",
-		" [r]          refresh screen",
-		" [q]          quit",
+		" [Enter]       back to normal mode",
+		" [Esc]         send escape to child",
+		" [Up]          scroll up",
+		" [Down]        scroll down",
+		" [Page up]     scroll one page up",
+		" [Page down]   scroll one page down",
+		" [r]           refresh screen",
+		" [d]           show debug output",
+		" [n]           show back to normal",
+		" [q]           quit",
 		"",
 		"",
 		"Press any key to close..."
 	};
-	screen_popup(50, 14, body);
+	screen_popup(50, 16, body);
 }

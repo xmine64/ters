@@ -5,7 +5,7 @@
 
 void invalid_key_error(long keycode) {
 	char error[30];
-	sprintf(error, "invalid key: %d", keycode);
+	sprintf(error, "invalid key: %ld", keycode);
 	char *body[] = {
 		error,
 		"",
@@ -58,6 +58,16 @@ void handle_scroll_mode(long keycode) {
 		case 'r':
 			screen_refresh();
 			break;
+
+		case 'd':
+			screen_debug(true);
+			screen_refresh();
+			break;
+
+		case 'n':
+			screen_debug(false);
+			screen_refresh();
+			break;
 			
 		// quit
 		case 'q':
@@ -65,6 +75,7 @@ void handle_scroll_mode(long keycode) {
 			break;
 
 		default:
+			debug_printf("[input handler] invalid key press: %d\n", keycode);
 			invalid_key_error(keycode);
 			break;
 	}

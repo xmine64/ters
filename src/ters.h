@@ -30,6 +30,9 @@ void screen_refresh();
 void screen_clear();
 void screen_beep();
 void screen_printf(const char *message, ...);
+void debug_printf(const char *message, ...);
+
+void screen_debug(bool enabled); // set debug screen visibility
 
 void screen_popup(int width, int height, char **lines);
 bool screen_is_popup();

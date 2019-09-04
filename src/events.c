@@ -21,6 +21,7 @@ void events_callback_pty(evutil_socket_t fd, short ev, void * arg) {
 	// count pending data on pty
 	int count;
 	ioctl(fd, FIONREAD, &count);
+	debug_printf("[event] PTY: %d bytes received.\n", count);
 	if (count > 0) {
 		// allocate memory for it and read data
 		u_char *buf = malloc(count);
