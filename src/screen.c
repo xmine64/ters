@@ -209,18 +209,21 @@ void screen_vt_lf() {
 }
 
 void screen_vt_bs() {
-	wmove(Pad, getcury(Pad), getcurx(Pad) - 1);
+	screen_addch(BS);
 }
 
 void screen_vt_vtab() {
-	// TODO
+	screen_addch(VT);
 }
 
 void screen_vt_htab() {
-	int x = getcurx(Pad) + TAB_SIZE;
-	if (x > COLS) {
-		screen_vt_lf();
-	} else {
-		wmove(Pad, getcury(Pad), x);
-	}
+	screen_addch(HT);
+}
+
+void screen_vt_sp() {
+	screen_addch(SP);
+}
+
+void screen_vt_del() {
+	screen_addch(DEL);
 }

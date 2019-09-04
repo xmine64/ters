@@ -4,9 +4,21 @@
 #include "ters.h"
 #include "vt.h"
 
+int vt_read_escape_sequences(u_char *buffer, int count) {
+	return 0;
+}
+
 void vt_print_buffer(u_char *buffer, int count) {
 	for (int i = 0; i < count; i++) {
 		switch (buffer[i]) {
+			// C0
+			case ESC: {
+				int count = vt_read_escape_sequences(buffer + i + 1, count - i - 1);
+				if (count > 0) {
+					i += count;
+					break;
+				}
+			}
 			case NUL:
 			case SOH:
 			case STX:
@@ -30,11 +42,13 @@ void vt_print_buffer(u_char *buffer, int count) {
 			case CAN:
 			case EM:
 			case SUB:
-			case ESC:
+			//case ESC:
 			case FS:
 			case GS:
 			case RS:
 			case US:
+			//case SP:
+			//case DEL:
 				screen_printf("^%c", buffer[i] + 64);
 				break;
 			case BS:
@@ -55,6 +69,13 @@ void vt_print_buffer(u_char *buffer, int count) {
 			case LF:
 				screen_vt_lf();
 				break;
+			case SP:
+				screen_vt_sp();
+				break;
+			case DEL:
+				screen_vt_del();
+				break;
+			// C1
 			case IND:
 			case NEL:
 			case SSA:
@@ -80,7 +101,7 @@ void vt_print_buffer(u_char *buffer, int count) {
 			case OSC:
 			case PM:
 			case APC:
-				screen_printf("0x%x ", buffer[i]);
+				screen_printf("0x%X", buffer[i]);
 				break;
 			default:
 				screen_addch(buffer[i]);

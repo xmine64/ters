@@ -36,6 +36,8 @@
 #define GS      0x1D
 #define RS      0x1E
 #define US      0x1F
+#define SP		0x20
+#define DEL		0x7F
 // C1 set of 8-bit control characters
 #define IND     0x84
 #define NEL     0x85
@@ -70,4 +72,6 @@ void screen_vt_bs();            // do backspace
 void screen_vt_htab();          // Horizontal Tab
 void screen_vt_lf();            // go to new line
 void screen_vt_vtab();          // Vertical Tab
-void screen_vt_cr();            // do caridge return
+void screen_vt_cr();            // do carr1iage return
+void screen_vt_sp();			// space
+void screen_vt_del();			// delete
